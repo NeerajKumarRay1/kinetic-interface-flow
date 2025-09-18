@@ -10,6 +10,9 @@ import { ConfidenceIndicator } from './ConfidenceIndicator';
 import { TransparencyPanel } from './TransparencyPanel';
 import { AppealDialog } from './AppealDialog';
 
+const GEMINI_API_KEY = 'AIzaSyBbcf0U9HHNEDtkgDpj6ASx7FRfDRkONNI';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
+
 interface ChatMessage {
   id: string;
   type: 'user' | 'bot';
@@ -55,46 +58,87 @@ export const ChatBot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  const simulateEthicalResponse = (userMessage: string): ChatMessage => {
-    // Simulate different types of responses based on content
-    const lowercaseMessage = userMessage.toLowerCase();
-    let confidence = 0.8;
-    let ethicalFlags: string[] = [];
-    let reasoning = 'Standard response with factual information';
-    
-    if (lowercaseMessage.includes('password') || lowercaseMessage.includes('personal')) {
-      confidence = 0.3;
-      ethicalFlags = ['privacy-concern'];
-      reasoning = 'Request involves sensitive information that requires privacy protection';
-    } else if (lowercaseMessage.includes('fake') || lowercaseMessage.includes('lie')) {
-      confidence = 0.4;
-      ethicalFlags = ['misinformation-risk'];
-      reasoning = 'Content may involve misinformation concerns';
-    } else if (lowercaseMessage.includes('help') || lowercaseMessage.includes('how')) {
-      confidence = 0.9;
-      reasoning = 'Helpful inquiry with clear educational value';
+  const makeGeminiAPICall = async (userMessage: string): Promise<ChatMessage> => {
+    try {
+      const systemPrompt = `You are an ethical AI assistant committed to providing transparent, unbiased, and helpful responses. Always prioritize user safety and well-being. Be transparent about limitations and provide factual information.`;
+      
+      const response = await fetch(GEMINI_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            { parts: [{ text: systemPrompt }], role: 'user' },
+            { parts: [{ text: "I understand and will follow these ethical guidelines." }], role: 'model' },
+            { parts: [{ text: userMessage }], role: 'user' }
+          ]
+        })
+      });
+
+      const data = await response.json();
+      let botReply = '';
+      let confidence = 0.8;
+      
+      if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+        botReply = data.candidates[0].content.parts[0].text;
+      } else {
+        botReply = "I'm sorry, I couldn't process your request at the moment. Please try again.";
+        confidence = 0.3;
+      }
+
+      // Simple ethical analysis
+      const lowercaseMessage = userMessage.toLowerCase();
+      const lowercaseReply = botReply.toLowerCase();
+      let ethicalFlags: string[] = [];
+      let reasoning = 'Standard response with factual information';
+      
+      if (lowercaseMessage.includes('password') || lowercaseMessage.includes('personal')) {
+        confidence = Math.min(confidence, 0.4);
+        ethicalFlags = ['privacy-concern'];
+        reasoning = 'Request involves sensitive information that requires privacy protection';
+      } else if (lowercaseMessage.includes('fake') || lowercaseMessage.includes('lie')) {
+        confidence = Math.min(confidence, 0.5);
+        ethicalFlags = ['misinformation-risk'];
+        reasoning = 'Content may involve misinformation concerns';
+      } else if (lowercaseReply.includes('according to') || lowercaseReply.includes('research shows')) {
+        confidence = Math.min(confidence + 0.1, 1.0);
+        reasoning = 'Response includes factual references and citations';
+      }
+
+      return {
+        id: Date.now().toString(),
+        type: 'bot',
+        content: botReply,
+        timestamp: new Date(),
+        confidence,
+        transparencyData: {
+          reasoning,
+          sources: ['Gemini AI', 'Ethical guidelines', 'Knowledge base'],
+          ethicalConsiderations: ['Accuracy verification', 'Bias mitigation', 'User safety']
+        },
+        ethicalFlags
+      };
+    } catch (error) {
+      console.error('Gemini API error:', error);
+      toast({
+        title: "Connection Error",
+        description: "Unable to connect to AI service. Please try again.",
+        variant: "destructive",
+      });
+      
+      return {
+        id: Date.now().toString(),
+        type: 'bot',
+        content: "I'm experiencing technical difficulties. Please try again in a moment.",
+        timestamp: new Date(),
+        confidence: 0.2,
+        transparencyData: {
+          reasoning: 'Technical error occurred during processing',
+          sources: ['Error handling system'],
+          ethicalConsiderations: ['User notification', 'Transparency about limitations']
+        },
+        ethicalFlags: ['technical-error']
+      };
     }
-
-    const responses = [
-      "I understand your question. Based on available information, here's what I can share...",
-      "That's an interesting topic. Let me provide you with accurate, unbiased information...",
-      "I'll do my best to help you with that. Here's what the evidence suggests...",
-      "Thank you for your question. I want to ensure my response is both helpful and accurate..."
-    ];
-
-    return {
-      id: Date.now().toString(),
-      type: 'bot',
-      content: responses[Math.floor(Math.random() * responses.length)] + " This is a simulated ethical AI response that demonstrates transparency and responsible information sharing.",
-      timestamp: new Date(),
-      confidence,
-      transparencyData: {
-        reasoning,
-        sources: ['Knowledge base', 'Ethical guidelines', 'Fact-checking systems'],
-        ethicalConsiderations: ['Accuracy verification', 'Bias mitigation', 'User safety']
-      },
-      ethicalFlags
-    };
   };
 
   const handleSendMessage = async () => {
@@ -108,15 +152,18 @@ export const ChatBot: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsTyping(true);
 
-    // Simulate response delay
-    setTimeout(() => {
-      const botResponse = simulateEthicalResponse(input);
+    try {
+      const botResponse = await makeGeminiAPICall(currentInput);
       setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Error getting response:', error);
+    } finally {
       setIsTyping(false);
-    }, 1500 + Math.random() * 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
