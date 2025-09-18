@@ -1,73 +1,98 @@
-# Welcome to your Lovable project
+# Ethical AI Chatbot - Beautiful & Animated UI
 
-## Project info
+A stunning, modern ethical AI chatbot built with React, TypeScript, and Tailwind CSS. Features a beautiful teal/cyan design system with smooth animations and comprehensive ethical AI features.
 
-**URL**: https://lovable.dev/projects/c6e14b78-0280-4352-a156-0f746802ec2e
+## ✨ Features
 
-## How can I edit this code?
+### 🎨 **Beautiful Design System**
+- **Teal/Cyan Color Palette**: Modern gradient-based design with HSL color system
+- **Glassmorphism Effects**: Backdrop blur and transparency for modern aesthetics
+- **Smooth Animations**: Bounce animations, fade-ins, and micro-interactions
+- **Responsive Design**: Optimized for all screen sizes
 
-There are several ways of editing your application.
+### 🤖 **Ethical AI Features**
+- **Confidence Indicators**: Visual confidence scoring with color-coded badges
+- **Transparency Panel**: Detailed breakdown of AI decision-making process
+- **Appeal System**: User-friendly system to challenge AI responses
+- **Ethical Flagging**: Automatic detection of potential ethical concerns
 
-**Use Lovable**
+### 🎭 **Animations & Interactions**
+- **Message Animations**: Bouncy slide-in effects for messages
+- **Typing Indicator**: Animated dots showing AI is thinking
+- **Hover Effects**: Lift and glow effects on interactive elements
+- **Smooth Transitions**: Carefully crafted timing functions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/c6e14b78-0280-4352-a156-0f746802ec2e) and start prompting.
+### 🛡️ **Transparency Features**
+- **Response Reasoning**: Clear explanation of AI decision-making
+- **Source Citations**: Information about data sources used
+- **Ethical Considerations**: Breakdown of ethical factors considered
+- **Confidence Scoring**: Visual representation of response reliability
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🎨 Design System
 
-**Use your preferred IDE**
+### Colors
+- **Primary**: Teal (#14B8A6) - Main brand color
+- **Secondary**: Cyan (#47e6d2) - Accent color  
+- **Background**: Dark gradients for modern feel
+- **Success**: Green for high confidence
+- **Warning**: Yellow for medium confidence
+- **Destructive**: Red for low confidence
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Animations
+- **Bounce**: `cubic-bezier(0.68, -0.55, 0.265, 1.55)` for playful interactions
+- **Smooth**: `cubic-bezier(0.4, 0, 0.2, 1)` for elegant transitions
+- **Typing**: Custom keyframes for realistic typing indicator
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Getting Started
 
-Follow these steps:
+1. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. **Build for Production**
+   ```bash
+   npm run build
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 📱 Components
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### Main Components
+- **`ChatBot`** - Main container with message handling
+- **`Message`** - Individual message bubbles with animations
+- **`ConfidenceIndicator`** - Color-coded confidence badges
+- **`TransparencyPanel`** - Detailed response breakdown
+- **`AppealDialog`** - User appeal system interface
 
-**Edit a file directly in GitHub**
+### Key Features
+- Real-time confidence scoring
+- Animated typing indicators  
+- Smooth message animations
+- Ethical flag detection
+- Appeal categorization
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🎯 User Experience
 
-**Use GitHub Codespaces**
+- **Intuitive Interface**: Clean, modern chat interface
+- **Visual Feedback**: Immediate confidence indicators
+- **Transparency**: One-click access to decision details
+- **User Empowerment**: Easy appeal system for challenging responses
+- **Responsive**: Works beautifully on desktop and mobile
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔧 Technical Stack
 
-## What technologies are used for this project?
+- **React 18** with TypeScript
+- **Tailwind CSS** with custom design system
+- **Shadcn/ui** components
+- **Lucide React** icons
+- **React Router** for navigation
+- **Vite** for fast development
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/c6e14b78-0280-4352-a156-0f746802ec2e) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Built with ❤️ using modern web technologies and ethical AI principles.

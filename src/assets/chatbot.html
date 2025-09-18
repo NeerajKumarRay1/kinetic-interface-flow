@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ethical AI Chatbot</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #18181b 0%, #232323 100%);
+            color: #f3f4f6;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chat-container {
+            background: rgba(34,34,38,0.98);
+            border-radius: 20px;
+            box-shadow: 0 6px 32px rgba(20,184,166,.12), 0 2px 4px rgba(20,184,166,.05);
+            max-width: 400px;
+            width: 95vw;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .chat-title {
+            background: linear-gradient(90deg,#14B8A6 10%,#0891b2 90%);
+            color: #fff;
+            padding: 18px 0;
+            letter-spacing: .08em;
+            font-size: 1.5em;
+            font-weight: 600;
+            text-align: center;
+            margin: 0 0 8px 0;
+            border-radius: 0 0 16px 16px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 20px 12px 20px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin: 8px 0;
+            padding: 12px 16px;
+            border-radius: 14px;
+            background: #2a2a33;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            transition: background .2s;
+            min-width: 0;
+        }
+
+        .user, .bot {
+            font-weight: 500;
+        }
+
+        .user {
+            background: linear-gradient(90deg, #14B8A6 60%, #47e6d2 100%);
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot {
+            background: #1e293b;
+            color: #f1f5f9;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #14B8A6;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1em;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 14px 20px 14px 20px;
+            gap: 10px;
+            background: #222329;
+            border-top: 1px solid #29303b;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: none;
+            background: #17181C;
+            color: #f1f5f9;
+            font-size: 1em;
+            box-shadow: 0 0 0 2px #14B8A625;
+            transition: box-shadow .2s;
+        }
+
+        .chat-input input:focus {
+            box-shadow: 0 0 0 2px #14B8A6;
+            outline: none;
+        }
+
+        .chat-input button {
+            background: linear-gradient(90deg, #14B8A6 70%, #0891b2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0 26px;
+            font-size: 1.05em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .chat-input button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+
+        ::-webkit-scrollbar {
+            width: 7px;
+            background: #18181b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #14B8A6;
+        }
+
+        .message-metadata {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .confidence-indicator {
+            font-size: 0.9em;
+            color: #14B8A6;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .confidence-high {
+            color: #10B981;
+        }
+
+        .confidence-medium {
+            color: #F59E0B;
+        }
+
+        .confidence-low {
+            color: #EF4444;
+        }
+
+        .appeal-button,
+        .transparency-toggle {
+            background: #274c52;
+            color: #daf6f3;
+            border: 1px solid #14B8A6;
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 0.85em;
+            cursor: pointer;
+            margin-left: 4px;
+            transition: background .2s;
+        }
+
+        .appeal-button:hover,
+        .transparency-toggle:hover {
+            background: #14B8A6;
+            color: #fff;
+        }
+
+        .transparency-details {
+            background: #1a1a1a;
+            border-radius: 9px;
+            font-size: 0.85em;
+            color: #b6fcf7;
+            margin-top: 8px;
+            padding: 10px 12px;
+            display: none;
+        }
+
+        .transparency-details.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-container">
+        <div class="chat-title">Ethical AI Chatbot</div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">Hey, How can I help you today?</div>
+        </div>
+        <form class="chat-input" id="chatForm">
+            <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off" required />
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script src="system-prompt.js"></script>
+    <script src="ethical-config.js"></script>
+    <script>
+        // Insert your Gemini API key below
+        const GEMINI_API_KEY = 'AIzaSyBbcf0U9HHNEDtkgDpj6ASx7FRfDRkONNI';
+        const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
+
+        // SystemPromptManager class
+        class SystemPromptManager {
+            constructor() {
+                this.systemPrompt = window.ETHICAL_SYSTEM_PROMPT || this.getFallbackPrompt();
+                this.guidelines = window.ETHICAL_GUIDELINES || {};
+            }
+
+            getFallbackPrompt() {
+                return `Always provide factual, unbiased, and objective responses. Prioritize user safety and well-being. Be transparent about limitations and provide mechanisms for appeals.`;
+            }
+
+            getSystemPrompt() {
+                return this.systemPrompt;
+            }
+
+            formatPromptForAPI(userMessage) {
+                return `${this.systemPrompt}\n\nUser: ${userMessage}`;
+            }
+
+            validatePromptCompliance(response) {
+                const biasIndicators = [
+                    /in my opinion/i, /i believe/i, /personally/i, /obviously/i,
+                    /clearly everyone knows/i, /any reasonable person/i
+                ];
+
+                const hasSubjectiveLanguage = biasIndicators.some(pattern => pattern.test(response));
+
+                return {
+                    compliant: !hasSubjectiveLanguage,
+                    issues: hasSubjectiveLanguage ? ['Contains subjective language'] : []
+                };
+            }
+        }
+
+        // Enhanced EthicsEngine class
+        class EthicsEngine {
+            constructor() {
+                this.ethicalPatterns = {
+                    misinformation: {
+                        patterns: [/garlic cures covid/i, /miracle cure/i, /covid.*cure/i],
+                        severity: 'high',
+                        category: 'Health Misinformation'
+                    },
+                    scams: {
+                        patterns: [/only \d+ left/i, /act now/i, /free iphone/i, /urgent.*offer/i],
+                        severity: 'high',
+                        category: 'Scam/Manipulation'
+                    },
+                    sensitiveInfo: {
+                        patterns: [/\b\d{10}\b/, /password/i, /credit card/i, /bank.*account/i],
+                        severity: 'high',
+                        category: 'Sensitive Information'
+                    }
+                };
+            }
+
+            checkMessage(message) {
+                const decisions = [];
+                let blockMessage = false;
+
+                for (const [categoryKey, category] of Object.entries(this.ethicalPatterns)) {
+                    for (const pattern of category.patterns) {
+                        if (pattern.test(message)) {
+                            const decision = {
+                                category: category.category,
+                                severity: category.severity,
+                                reason: this.getBlockReason(categoryKey)
+                            };
+                            decisions.push(decision);
+
+                            if (category.severity === 'critical' || category.severity === 'high') {
+                                blockMessage = true;
+                            }
+                        }
+                    }
+                }
+
+                return {
+                    block: blockMessage,
+                    reply: blockMessage ? this.getBlockMessage(decisions) : '',
+                    decisions: decisions
+                };
+            }
+
+            getBlockReason(category) {
+                const reasons = {
+                    misinformation: "This message may contain health misinformation. Please verify with reliable sources.",
+                    scams: "This appears to be manipulative content. Please be cautious.",
+                    sensitiveInfo: "For your privacy, I cannot process personal details like passwords or financial information."
+                };
+                return reasons[category] || "This content violates our ethical guidelines.";
+            }
+
+            getBlockMessage(decisions) {
+                return decisions[0]?.reason || "Content blocked for ethical reasons.";
+            }
+
+            validateResponse(response) {
+                const biasPatterns = [/obviously/i, /clearly everyone/i, /everyone knows/i];
+                const uncertaintyPatterns = [/i'm not sure/i, /may not be accurate/i];
+                const factualPatterns = [/according to/i, /research shows/i, /studies indicate/i];
+
+                const hasBias = biasPatterns.some(pattern => pattern.test(response));
+                const hasUncertainty = uncertaintyPatterns.some(pattern => pattern.test(response));
+                const hasFactualBasis = factualPatterns.some(pattern => pattern.test(response));
+
+                return {
+                    hasBias,
+                    hasUncertainty,
+                    hasFactualBasis,
+                    confidence: hasUncertainty ? 'low' : (hasFactualBasis ? 'high' : 'medium')
+                };
+            }
+        }
+
+        // ResponseProcessor class
+        class ResponseProcessor {
+            constructor(ethicsEngine) {
+                this.ethicsEngine = ethicsEngine;
+                this.messageCounter = 0;
+            }
+
+            processResponse(rawResponse, userMessage) {
+                this.messageCounter++;
+                const messageId = `msg_${Date.now()}_${this.messageCounter}`;
+
+                const validation = this.ethicsEngine.validateResponse(rawResponse);
+
+                const metadata = {
+                    messageId,
+                    confidence: validation.confidence,
+                    factualBasis: validation.hasFactualBasis ? 'detected' : 'not_detected',
+                    biasCheck: !validation.hasBias,
+                    timestamp: new Date().toISOString()
+                };
+
+                let processedResponse = rawResponse;
+                if (validation.hasBias) {
+                    processedResponse += "\n\n⚠️ Note: This response may contain bias. Please verify independently.";
+                    metadata.confidence = 'low';
+                }
+
+                return {
+                    response: processedResponse,
+                    metadata
+                };
+            }
+        }
+
+        // Initialize components
+        const systemPromptManager = new SystemPromptManager();
+        const ethicsEngine = new EthicsEngine();
+        const responseProcessor = new ResponseProcessor(ethicsEngine);
+
+        // Legacy function for backward compatibility
+        function checkEthics(message) {
+            const result = ethicsEngine.checkMessage(message);
+            return {
+                block: result.block,
+                reply: result.reply
+            };
+        }
+
+        function addMessage(text, sender, confidence, metadata = null) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message ' + sender;
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+
+            if (sender === 'bot' && (confidence || metadata)) {
+                const metadataDiv = document.createElement('div');
+                metadataDiv.className = 'message-metadata';
+
+                if (confidence) {
+                    const confDiv = document.createElement('div');
+                    confDiv.className = `confidence-indicator confidence-${confidence}`;
+                    const confidenceIcon = getConfidenceIcon(confidence);
+                    confDiv.innerHTML = `${confidenceIcon} Confidence: ${confidence}`;
+                    metadataDiv.appendChild(confDiv);
+                }
+
+                const buttonsDiv = document.createElement('div');
+                buttonsDiv.style.display = 'flex';
+                buttonsDiv.style.gap = '8px';
+
+                const transparencyBtn = document.createElement('button');
+                transparencyBtn.className = 'transparency-toggle';
+                transparencyBtn.textContent = 'Show Details';
+                transparencyBtn.onclick = () => toggleTransparencyDetails(transparencyBtn);
+                buttonsDiv.appendChild(transparencyBtn);
+
+                const appealBtn = document.createElement('button');
+                appealBtn.className = 'appeal-button';
+                appealBtn.textContent = 'Appeal';
+                appealBtn.onclick = () => handleAppeal(metadata);
+                buttonsDiv.appendChild(appealBtn);
+
+                metadataDiv.appendChild(buttonsDiv);
+                chatMessages.appendChild(metadataDiv);
+
+                if (metadata) {
+                    const transparencyDiv = document.createElement('div');
+                    transparencyDiv.className = 'transparency-details';
+                    transparencyDiv.innerHTML = createTransparencyContent(metadata);
+                    chatMessages.appendChild(transparencyDiv);
+                }
+            }
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function getConfidenceIcon(confidence) {
+            const icons = { 'high': '🟢', 'medium': '🟡', 'low': '🔴' };
+            return icons[confidence] || '⚪';
+        }
+
+        function createTransparencyContent(metadata) {
+            if (!metadata) return '';
+
+            let content = '<strong>Transparency Report:</strong><br>';
+            content += `Message ID: ${metadata.messageId}<br>`;
+            content += `Timestamp: ${new Date(metadata.timestamp).toLocaleString()}<br>`;
+            content += `Factual Basis: ${metadata.factualBasis}<br>`;
+            content += `Bias Check: ${metadata.biasCheck ? 'Passed' : 'Failed'}<br>`;
+
+            if (!metadata.biasCheck) {
+                content += '<div style="background: #FEF3C7; color: #92400E; padding: 4px 8px; border-radius: 4px; margin-top: 4px;">⚠️ Potential bias detected</div>';
+            }
+
+            return content;
+        }
+
+        function toggleTransparencyDetails(button) {
+            const transparencyDiv = button.closest('.message-metadata').nextElementSibling;
+            if (transparencyDiv && transparencyDiv.classList.contains('transparency-details')) {
+                transparencyDiv.classList.toggle('show');
+                button.textContent = transparencyDiv.classList.contains('show') ? 'Hide Details' : 'Show Details';
+            }
+        }
+
+        function handleAppeal(metadata) {
+            const reason = prompt('Why do you want to appeal this response?\n\n1. Factual inaccuracy\n2. Bias or unfairness\n3. Need clarification\n4. Other\n\nPlease describe your concern:');
+
+            if (reason) {
+                alert(`Thank you for your feedback. Your appeal has been recorded.\nAppeal ID: ${metadata?.messageId || 'unknown'}\n\nYour concern: ${reason}`);
+
+                // Add appeal indicator
+                const appealIndicator = document.createElement('div');
+                appealIndicator.innerHTML = '📝 Appeal submitted';
+                appealIndicator.style.fontSize = '0.7em';
+                appealIndicator.style.color = '#14B8A6';
+                appealIndicator.style.marginTop = '4px';
+
+                const metadataDiv = event.target.closest('.message-metadata');
+                if (metadataDiv) {
+                    metadataDiv.appendChild(appealIndicator);
+                }
+            }
+        }
+
+        document.getElementById('chatForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const input = document.getElementById('userInput');
+            const userMsg = input.value.trim();
+            if (!userMsg) return;
+
+            addMessage(userMsg, 'user');
+            input.value = '';
+
+            // Ethics check
+            const ethics = checkEthics(userMsg);
+            if (ethics.block) {
+                addMessage(ethics.reply, 'bot', 'high');
+                return;
+            } else if (ethics.reply) {
+                addMessage(ethics.reply, 'bot', 'high');
+            }
+
+            // Gemini API call
+            addMessage('Thinking...', 'bot');
+            try {
+                const res = await fetch(GEMINI_API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [
+                            { parts: [{ text: systemPromptManager.getSystemPrompt() }], role: 'user' },
+                            { parts: [{ text: "I understand and will follow these ethical guidelines." }], role: 'model' },
+                            { parts: [{ text: userMsg }], role: 'user' }
+                        ]
+                    })
+                });
+
+                const data = await res.json();
+
+                // Remove 'Thinking...' message
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.removeChild(chatMessages.lastChild);
+
+                let botReply = '';
+                let confidence = 'medium';
+
+                if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0].text) {
+                    const rawResponse = data.candidates[0].content.parts[0].text;
+                    const processedResult = responseProcessor.processResponse(rawResponse, userMsg);
+
+                    botReply = processedResult.response;
+                    confidence = processedResult.metadata.confidence;
+
+                    window.lastMessageMetadata = processedResult.metadata;
+                } else {
+                    botReply = "Sorry, I couldn't get a response. Please try again.";
+                    confidence = 'low';
+                }
+
+                addMessage(botReply, 'bot', confidence, window.lastMessageMetadata);
+            } catch (err) {
+                // Remove 'Thinking...' message
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages.lastChild && chatMessages.lastChild.textContent === 'Thinking...') {
+                    chatMessages.removeChild(chatMessages.lastChild);
+                }
+                addMessage('Sorry, there was an error connecting to the AI. Please try again.', 'bot', 'low');
+            }
+        });
+    </script>
+</body>
+
+</html>
