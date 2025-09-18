@@ -1,8 +1,8 @@
 import React from 'react';
-import { User, Sparkles, Info, Flag, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ConfidenceIndicator } from './ConfidenceIndicator';
+import { Button } from '@/components/ui/button';
+import { Eye, MessageSquare, AlertTriangle } from 'lucide-react';
+import { FriendlyAvatar } from './FriendlyAvatar';
 
 interface ChatMessage {
   id: string;
@@ -24,86 +24,108 @@ interface MessageProps {
   onAppeal: (message: ChatMessage) => void;
 }
 
+const getConfidenceEmoji = (confidence: number) => {
+  if (confidence > 0.8) return '🟢';
+  if (confidence > 0.5) return '🟡'; 
+  return '🔴';
+};
+
 export const Message: React.FC<MessageProps> = ({ message, onShowTransparency, onAppeal }) => {
-  const isUser = message.type === 'user';
-  const hasEthicalFlags = message.ethicalFlags && message.ethicalFlags.length > 0;
-
   return (
-    <div className={`flex items-start gap-3 ${isUser ? 'flex-row-reverse' : 'flex-row'} animate-fade-in`}>
-      {/* Avatar */}
-      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-        isUser 
-          ? 'bg-gradient-primary shadow-glow' 
-          : 'bg-primary/20 border border-primary/30'
-      }`}>
-        {isUser ? (
-          <User className="w-4 h-4 text-primary-foreground" />
-        ) : (
-          <Sparkles className="w-4 h-4 text-primary" />
-        )}
-      </div>
+    <div 
+      className={`flex gap-3 animate-fade-in ${
+        message.type === 'user' ? 'justify-end' : 'justify-start'
+      }`}
+    >
+      {message.type === 'bot' && (
+        <FriendlyAvatar 
+          size="sm" 
+          mood={message.confidence && message.confidence > 0.8 ? 'happy' : 'thoughtful'} 
+        />
+      )}
+      
+      <div className={`max-w-[80%] ${message.type === 'user' ? 'order-2' : ''}`}>
+        <div
+          className={`
+            px-4 py-3 rounded-2xl shadow-md transition-all duration-300 hover:shadow-lg
+            ${message.type === 'user' 
+              ? 'bg-gradient-primary text-white rounded-br-sm animate-slide-in-right hover:scale-[1.02]' 
+              : 'bg-card border border-border/50 rounded-bl-sm animate-slide-in-left hover:border-primary/20'
+            }
+          `}
+        >
+          <p className="text-sm leading-relaxed">{message.content}</p>
+        </div>
 
-      {/* Message Content */}
-      <div className={`flex flex-col max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
-        <div className={`${isUser ? 'message-user' : 'message-bot'} group relative`}>
-          {message.content}
-          
-          {/* Ethical Flags */}
-          {hasEthicalFlags && (
-            <div className="flex flex-wrap gap-1 mt-2">
+        {/* Enhanced metadata for bot messages */}
+        {message.type === 'bot' && (message.confidence || message.ethicalFlags?.length) && (
+          <div className="mt-3 space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {message.confidence !== undefined && (
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs transition-all duration-300 hover:scale-105 ${
+                    message.confidence > 0.8 
+                      ? 'border-green-500/30 text-green-400 bg-green-500/10' 
+                      : message.confidence > 0.5 
+                        ? 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10'
+                        : 'border-red-500/30 text-red-400 bg-red-500/10'
+                  }`}
+                >
+                  {getConfidenceEmoji(message.confidence)} {Math.round(message.confidence * 100)}% confident
+                </Badge>
+              )}
+
               {message.ethicalFlags?.map((flag, index) => (
-                <Badge
-                  key={index}
-                  variant="outline"
-                  className="text-xs bg-warning/10 text-warning border-warning/30"
+                <Badge 
+                  key={index} 
+                  variant="outline" 
+                  className="text-xs border-orange-500/30 text-orange-400 bg-orange-500/10 animate-wiggle"
                 >
                   <AlertTriangle className="w-3 h-3 mr-1" />
                   {flag.replace('-', ' ')}
                 </Badge>
               ))}
             </div>
-          )}
-        </div>
 
-        {/* Bot Message Controls */}
-        {!isUser && (
-          <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* Confidence Indicator */}
-            {message.confidence !== undefined && (
-              <ConfidenceIndicator confidence={message.confidence} />
-            )}
-            
-            {/* Transparency Button */}
-            {message.transparencyData && (
+            <div className="flex gap-2">
               <Button
-                size="sm"
                 variant="ghost"
+                size="sm"
                 onClick={() => onShowTransparency(message)}
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-primary transition-colors"
+                className="text-xs text-muted-foreground hover:text-primary transition-all duration-300 hover:bg-primary/5 rounded-lg px-3 py-1"
               >
-                <Info className="w-3 h-3 mr-1" />
-                Details
+                <Eye className="w-3 h-3 mr-1" />
+                Show Details
               </Button>
-            )}
-            
-            {/* Appeal Button */}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => onAppeal(message)}
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive transition-colors"
-            >
-              <Flag className="w-3 h-3 mr-1" />
-              Appeal
-            </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onAppeal(message)}
+                className="text-xs text-muted-foreground hover:text-primary transition-all duration-300 hover:bg-primary/5 rounded-lg px-3 py-1"
+              >
+                <MessageSquare className="w-3 h-3 mr-1" />
+                Appeal
+              </Button>
+            </div>
           </div>
         )}
-
-        {/* Timestamp */}
-        <div className={`text-xs text-muted-foreground mt-1 ${isUser ? 'text-right' : 'text-left'}`}>
-          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        
+        {/* Friendly timestamp */}
+        <div className={`text-xs text-muted-foreground mt-2 ${
+          message.type === 'user' ? 'text-right' : 'text-left'
+        }`}>
+          {message.timestamp.toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
         </div>
       </div>
+
+      {message.type === 'user' && (
+        <FriendlyAvatar size="sm" mood="calm" className="order-1" />
+      )}
     </div>
   );
 };

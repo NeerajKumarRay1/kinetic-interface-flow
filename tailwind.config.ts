@@ -159,6 +159,91 @@ export default {
             backgroundPosition: "calc(200px + 100%) 0",
           },
         },
+        "bounce-gentle": {
+          "0%, 20%, 53%, 80%, 100%": {
+            transform: "translate3d(0, 0, 0)",
+          },
+          "40%, 43%": {
+            transform: "translate3d(0, -8px, 0)",
+          },
+          "70%": {
+            transform: "translate3d(0, -4px, 0)",
+          },
+          "90%": {
+            transform: "translate3d(0, -2px, 0)",
+          },
+        },
+        "wiggle": {
+          "0%, 7%": {
+            transform: "rotateZ(0)",
+          },
+          "15%": {
+            transform: "rotateZ(-15deg)",
+          },
+          "20%": {
+            transform: "rotateZ(10deg)",
+          },
+          "25%": {
+            transform: "rotateZ(-10deg)",
+          },
+          "30%": {
+            transform: "rotateZ(6deg)",
+          },
+          "35%": {
+            transform: "rotateZ(-4deg)",
+          },
+          "40%, 100%": {
+            transform: "rotateZ(0)",
+          },
+        },
+        "sparkle": {
+          "0%": {
+            opacity: "0",
+            transform: "scale(0.5) rotate(0deg)",
+          },
+          "50%": {
+            opacity: "1",
+            transform: "scale(1.2) rotate(180deg)",
+          },
+          "100%": {
+            opacity: "0",
+            transform: "scale(0.5) rotate(360deg)",
+          },
+        },
+        "heart-beat": {
+          "0%": {
+            transform: "scale(1)",
+          },
+          "14%": {
+            transform: "scale(1.1)",
+          },
+          "28%": {
+            transform: "scale(1)",
+          },
+          "42%": {
+            transform: "scale(1.1)",
+          },
+          "70%": {
+            transform: "scale(1)",
+          },
+        },
+        "celebration": {
+          "0%": {
+            transform: "scale(1) rotate(0deg)",
+          },
+          "25%": {
+            transform: "scale(1.1) rotate(-5deg)",
+          },
+          "50%": {
+            transform: "scale(1.2) rotate(5deg)",
+          },
+          "75%": {
+            transform: "scale(1.1) rotate(-3deg)",
+          },
+          "100%": {
+            transform: "scale(1) rotate(0deg)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -170,6 +255,11 @@ export default {
         "typing": "typing 1.4s infinite ease-in-out",
         "pulse-glow": "pulse-glow 1.5s infinite",
         "shimmer": "shimmer 2s infinite linear",
+        "bounce-gentle": "bounce-gentle 0.6s ease-out",
+        "wiggle": "wiggle 0.5s ease-in-out",
+        "sparkle": "sparkle 1.5s ease-in-out infinite",
+        "heart-beat": "heart-beat 1.2s ease-in-out infinite",
+        "celebration": "celebration 0.8s ease-out",
       },
     },
   },

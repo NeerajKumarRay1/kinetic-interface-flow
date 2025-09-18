@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { Send, Sparkles, AlertTriangle, CheckCircle, Info, Heart, Star, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -9,6 +9,10 @@ import { Message } from './Message';
 import { ConfidenceIndicator } from './ConfidenceIndicator';
 import { TransparencyPanel } from './TransparencyPanel';
 import { AppealDialog } from './AppealDialog';
+import { AuthModal } from './AuthModal';
+import { MemoriesModal } from './MemoriesModal';
+import { FriendlyAvatar } from './FriendlyAvatar';
+import { QuickReplies } from './QuickReplies';
 
 const GEMINI_API_KEY = 'AIzaSyBbcf0U9HHNEDtkgDpj6ASx7FRfDRkONNI';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
@@ -28,26 +32,16 @@ interface ChatMessage {
 }
 
 export const ChatBot: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      type: 'bot',
-      content: 'Hello! I\'m an ethical AI assistant committed to providing transparent, unbiased, and helpful responses. How can I assist you today?',
-      timestamp: new Date(),
-      confidence: 0.95,
-      transparencyData: {
-        reasoning: 'This is a standard greeting message designed to be welcoming and informative.',
-        sources: ['System prompt', 'Ethical guidelines'],
-        ethicalConsiderations: ['Transparency', 'User empowerment', 'Clear communication']
-      }
-    }
-  ]);
-  
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState<ChatMessage | null>(null);
   const [showTransparency, setShowTransparency] = useState(false);
   const [showAppeal, setShowAppeal] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [showMemories, setShowMemories] = useState(false);
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null);
+  const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -57,6 +51,31 @@ export const ChatBot: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Initialize with welcome message after user logs in
+  useEffect(() => {
+    if (user && messages.length === 0) {
+      const welcomeMessage: ChatMessage = {
+        id: '1',
+        type: 'bot',
+        content: `Hello ${user.name}! 🌟 I'm your friendly ethical AI assistant, and I'm absolutely delighted to meet you! I'm here to provide transparent, caring, and helpful responses. What wonderful conversation shall we have today?`,
+        timestamp: new Date(),
+        confidence: 0.95,
+        transparencyData: {
+          reasoning: 'Personalized welcome message designed to be warm and inviting.',
+          sources: ['User profile', 'Ethical guidelines', 'Welcoming protocols'],
+          ethicalConsiderations: ['Personal connection', 'Transparency', 'Positive user experience']
+        }
+      };
+      setMessages([welcomeMessage]);
+      
+      // Show celebration for first login
+      toast({
+        title: "You've made your mark! 🎉",
+        description: "Welcome to our magical conversation space!",
+      });
+    }
+  }, [user, messages.length]);
 
   const makeGeminiAPICall = async (userMessage: string): Promise<ChatMessage> => {
     try {
@@ -141,24 +160,48 @@ export const ChatBot: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async () => {
-    if (!input.trim()) return;
+  const handleSendMessage = async (messageText?: string) => {
+    const messageToSend = messageText || input.trim();
+    if (!messageToSend) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
-      content: input,
+      content: messageToSend,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
     setInput('');
     setIsTyping(true);
+    setMessageCount(prev => prev + 1);
+
+    // Celebrate milestones
+    if (messageCount === 0) {
+      toast({
+        title: "Your first message! ✨",
+        description: "This is the beginning of something wonderful!",
+      });
+    } else if (messageCount === 9) {
+      toast({
+        title: "10 messages! 🎉", 
+        description: "You're on a roll! I love our conversation!",
+      });
+    }
 
     try {
-      const botResponse = await makeGeminiAPICall(currentInput);
+      const botResponse = await makeGeminiAPICall(messageToSend);
       setMessages(prev => [...prev, botResponse]);
+      
+      // Show motivational message occasionally
+      if (Math.random() < 0.15) {
+        setTimeout(() => {
+          toast({
+            title: "💫 AI Sparkle Fact",
+            description: "Did you know? Every conversation teaches me to be more helpful and understanding!",
+          });
+        }, 2000);
+      }
     } catch (error) {
       console.error('Error getting response:', error);
     } finally {
@@ -183,85 +226,198 @@ export const ChatBot: React.FC = () => {
     setShowAppeal(true);
   };
 
+  const handleAuth = () => {
+    setShowAuth(true);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setMessages([]);
+    setMessageCount(0);
+    toast({
+      title: "See you soon, friend! 👋",
+      description: "Thanks for the wonderful conversations!",
+    });
+  };
+
+  const handleAuthSuccess = (userData: { name: string; email: string }) => {
+    setUser(userData);
+  };
+
+  const handleLoadMemory = (memoryId: string) => {
+    // In a real app, this would load the actual conversation
+    toast({
+      title: "Memory loaded! 📖",
+      description: "This is where the saved conversation would appear!",
+    });
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <Card className="chat-container w-full max-w-2xl h-[700px] flex flex-col animate-scale-in">
-        {/* Header */}
-        <div className="chat-header flex items-center justify-center gap-2">
-          <Sparkles className="w-6 h-6" />
-          <span>Ethical AI Assistant</span>
+        {/* Enhanced Header */}
+        <div className="chat-header flex items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <FriendlyAvatar size="md" mood="happy" />
+            <div>
+              <h1 className="font-bold text-lg">Ethical AI Assistant</h1>
+              <p className="text-sm opacity-90">Making every interaction joyful! ✨</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowMemories(true)}
+                  className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+                >
+                  <Heart className="w-4 h-4 mr-1" />
+                  My Memories
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleLogout}
+                  className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+                >
+                  <LogOut className="w-4 h-4" />
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleAuth}
+                className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+              >
+                <User className="w-4 h-4 mr-1" />
+                Log In
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((message) => (
-            <Message
-              key={message.id}
-              message={message}
-              onShowTransparency={handleShowTransparency}
-              onAppeal={handleAppeal}
-            />
-          ))}
-          
-          {isTyping && (
-            <div className="flex items-center gap-3 animate-fade-in">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-primary animate-pulse-glow" />
-              </div>
-              <div className="bg-card rounded-2xl rounded-bl-sm px-4 py-3 border border-border/50">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '200ms' }}></div>
-                  <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '400ms' }}></div>
+          {!user ? (
+            <Card className="p-8 text-center bg-gradient-card border border-border/50 animate-fade-in">
+              <FriendlyAvatar size="xl" mood="excited" className="mx-auto mb-4" />
+              <h2 className="text-xl font-bold mb-2 text-gradient">
+                Welcome to Our Magical Space! 🌟
+              </h2>
+              <p className="text-muted-foreground mb-6">
+                Ready to have the most delightful AI conversations? Log in to start creating wonderful memories together!
+              </p>
+              <Button 
+                onClick={handleAuth}
+                className="bg-gradient-primary hover:opacity-90 text-white font-medium px-6 py-3 rounded-xl hover:shadow-glow hover:scale-105 transition-all duration-300"
+              >
+                <Heart className="w-4 h-4 mr-2" />
+                Join the Magic! ✨
+              </Button>
+            </Card>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <Message
+                  key={message.id}
+                  message={message}
+                  onShowTransparency={handleShowTransparency}
+                  onAppeal={handleAppeal}
+                />
+              ))}
+              
+              {isTyping && (
+                <div className="flex items-center gap-3 animate-fade-in">
+                  <FriendlyAvatar size="sm" mood="thoughtful" />
+                  <div className="bg-card rounded-2xl rounded-bl-sm px-4 py-3 border border-border/50">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '200ms' }}></div>
+                      <div className="w-2 h-2 bg-primary/60 rounded-full animate-typing" style={{ animationDelay: '400ms' }}></div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
+              
+              <div ref={messagesEndRef} />
+            </>
           )}
-          
-          <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="p-6 border-t border-border/50">
-          <div className="flex gap-3 items-center">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask me anything... I'll provide transparent, ethical responses"
-              className="flex-1 bg-muted/50 border-border/50 focus:border-primary/50 rounded-2xl px-4 py-3 transition-smooth"
-              disabled={isTyping}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!input.trim() || isTyping}
-              className="rounded-2xl px-6 py-3 bg-gradient-primary hover:opacity-90 transition-smooth hover-lift"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <CheckCircle className="w-3 h-3 text-success" />
-              <span>Ethical Guidelines Active</span>
+        {/* Enhanced Input Area */}
+        {user && (
+          <div className="p-6 border-t border-border/50 space-y-4">
+            {/* Quick Replies */}
+            {messages.length <= 2 && (
+              <div className="animate-fade-in">
+                <p className="text-xs text-muted-foreground mb-2 text-center">
+                  ✨ Try these conversation starters:
+                </p>
+                <QuickReplies onReplySelect={(message) => handleSendMessage(message)} />
+              </div>
+            )}
+            
+            {/* Input */}
+            <div className="flex gap-3 items-center">
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Share your thoughts... I'm here to help make your day brighter! 💫"
+                className="flex-1 bg-muted/50 border-border/50 focus:border-primary/50 rounded-2xl px-4 py-3 transition-smooth"
+                disabled={isTyping}
+              />
+              <Button
+                onClick={() => handleSendMessage()}
+                disabled={!input.trim() || isTyping}
+                className="rounded-2xl px-6 py-3 bg-gradient-primary hover:opacity-90 transition-smooth hover-lift"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
             </div>
-            <div className="flex items-center gap-1">
-              <Info className="w-3 h-3 text-primary" />
-              <span>Transparent Responses</span>
+            
+            {/* Status indicators */}
+            <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-success animate-pulse-glow" />
+                <span>Ethical Guidelines Active</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Info className="w-3 h-3 text-primary animate-sparkle" />
+                <span>Transparent & Caring</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Heart className="w-3 h-3 text-pink-400 animate-heart-beat" />
+                <span>Made with Love</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </Card>
 
-      {/* Transparency Panel */}
+      {/* Modals */}
+      <AuthModal
+        open={showAuth}
+        onOpenChange={setShowAuth}
+        onAuthSuccess={handleAuthSuccess}
+      />
+      
+      <MemoriesModal
+        open={showMemories}
+        onOpenChange={setShowMemories}
+        onLoadMemory={handleLoadMemory}
+      />
+
       <TransparencyPanel
         message={selectedMessage}
         open={showTransparency}
         onOpenChange={setShowTransparency}
       />
 
-      {/* Appeal Dialog */}
       <AppealDialog
         message={selectedMessage}
         open={showAppeal}

@@ -83,6 +83,18 @@ All colors MUST be HSL.
     --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     --bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --gentle-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+    
+    /* Lovable Enhancements */
+    --warm-glow: 0 0 30px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--secondary) / 0.2);
+    --heart-gradient: linear-gradient(45deg, #ff6b9d, #c44569);
+    --success-celebration: #10b981, #34d399, #6ee7b7;
+    --magical-sparkle: 174 77% 70%;
+    
+    /* Friendly Avatar Colors */
+    --avatar-happy: 45 100% 70%;
+    --avatar-excited: 300 100% 70%;
+    --avatar-calm: 200 100% 70%;
   }
 
   .dark {
@@ -192,6 +204,31 @@ All colors MUST be HSL.
   .hover-glow {
     @apply transition-all duration-300 hover:shadow-glow;
   }
+  
+  /* Lovable Micro-interactions */
+  .bounce-gentle {
+    animation: bounceGentle 0.6s ease-out;
+  }
+  
+  .wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+  
+  .sparkle {
+    animation: sparkle 1.5s ease-in-out infinite;
+  }
+  
+  .heart-beat {
+    animation: heartBeat 1.2s ease-in-out infinite;
+  }
+  
+  .warm-glow {
+    box-shadow: var(--warm-glow);
+  }
+  
+  .celebration {
+    animation: celebration 0.8s ease-out;
+  }
 }
 
 /* Keyframe Animations */
@@ -263,5 +300,96 @@ All colors MUST be HSL.
   }
   100% {
     background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* Lovable Keyframe Animations */
+@keyframes bounceGentle {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes wiggle {
+  0%, 7% {
+    transform: rotateZ(0);
+  }
+  15% {
+    transform: rotateZ(-15deg);
+  }
+  20% {
+    transform: rotateZ(10deg);
+  }
+  25% {
+    transform: rotateZ(-10deg);
+  }
+  30% {
+    transform: rotateZ(6deg);
+  }
+  35% {
+    transform: rotateZ(-4deg);
+  }
+  40%, 100% {
+    transform: rotateZ(0);
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.5) rotate(360deg);
+  }
+}
+
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+@keyframes celebration {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+  }
+  75% {
+    transform: scale(1.1) rotate(-3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
   }
 }
