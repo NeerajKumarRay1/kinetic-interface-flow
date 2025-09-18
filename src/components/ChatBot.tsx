@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, AlertTriangle, CheckCircle, Info, Heart, Star, User, LogOut } from 'lucide-react';
+import { Send, Sparkles, AlertTriangle, CheckCircle, Info, Heart, Star, User, LogOut, Mic, MicOff, Volume2, VolumeX, Settings2, Download, Keyboard, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -13,6 +14,11 @@ import { AuthModal } from './AuthModal';
 import { MemoriesModal } from './MemoriesModal';
 import { FriendlyAvatar } from './FriendlyAvatar';
 import { QuickReplies } from './QuickReplies';
+import { SettingsModal } from './SettingsModal';
+import { MessageExport } from './MessageExport';
+import { ShortcutsHelp } from './ShortcutsHelp';
+import { useVoiceChat } from '@/hooks/useVoiceChat';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 const GEMINI_API_KEY = 'AIzaSyBbcf0U9HHNEDtkgDpj6ASx7FRfDRkONNI';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_API_KEY;
@@ -40,17 +46,79 @@ export const ChatBot: React.FC = () => {
   const [showAppeal, setShowAppeal] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const [showMemories, setShowMemories] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showExport, setShowExport] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const [user, setUser] = useState<{ name: string; email: string } | null>(null);
   const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Voice chat functionality
+  const voiceChat = useVoiceChat({
+    volume: parseFloat(localStorage.getItem('voice-volume') || '0.8')
+  });
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Keyboard shortcuts
+  const { shortcuts } = useKeyboardShortcuts({
+    onSendMessage: () => handleSendMessage(),
+    onNewChat: () => {
+      setMessages([]);
+      toast({
+        title: "Fresh Start! 🌟",
+        description: "Ready for a new conversation!",
+        duration: 2000,
+      });
+    },
+    onToggleHistory: () => setShowMemories(!showMemories),
+    onToggleSettings: () => setShowSettings(!showSettings),
+    onToggleVoice: () => {
+      if (voiceChat.isListening) {
+        voiceChat.stopListening();
+      } else {
+        voiceChat.startListening();
+      }
+    },
+    onFocusInput: () => textareaRef.current?.focus(),
+    onEscape: () => {
+      setShowMemories(false);
+      setShowSettings(false);
+      setShowExport(false);
+      setShowShortcuts(false);
+      setShowAuth(false);
+      setShowTransparency(false);
+      setShowAppeal(false);
+    },
+  });
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Handle voice transcript
+  useEffect(() => {
+    if (voiceChat.transcript) {
+      setInput(voiceChat.transcript);
+    }
+  }, [voiceChat.transcript]);
+
+  // Auto-speak AI responses if enabled
+  useEffect(() => {
+    const isVoiceEnabled = localStorage.getItem('voice-enabled') === 'true';
+    if (isVoiceEnabled && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.type === 'bot' && !voiceChat.isSpeaking) {
+        // Add a small delay before speaking
+        setTimeout(() => {
+          voiceChat.speak(lastMessage.content);
+        }, 500);
+      }
+    }
+  }, [messages, voiceChat.speak, voiceChat.isSpeaking]);
 
   // Initialize with welcome message after user logs in
   useEffect(() => {
@@ -258,14 +326,54 @@ export const ChatBot: React.FC = () => {
         {/* Enhanced Header */}
         <div className="chat-header flex items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <FriendlyAvatar size="md" mood="happy" />
+            <FriendlyAvatar 
+              size="md" 
+              mood={voiceChat.isListening ? "excited" : voiceChat.isSpeaking ? "happy" : "thoughtful"} 
+              animate={voiceChat.isListening || voiceChat.isSpeaking}
+            />
             <div>
               <h1 className="font-bold text-lg">Ethical AI Assistant</h1>
-              <p className="text-sm opacity-90">Making every interaction joyful! ✨</p>
+              <p className="text-sm opacity-90">
+                {voiceChat.isListening ? 'Listening... 👂' : 
+                 voiceChat.isSpeaking ? 'Speaking... 🗣️' : 
+                 'Making every interaction joyful! ✨'}
+              </p>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowShortcuts(true)}
+              className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+              title="Keyboard shortcuts"
+            >
+              <Keyboard className="w-4 h-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSettings(true)}
+              className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+              title="Settings (Ctrl+,)"
+            >
+              <Settings2 className="w-4 h-4" />
+            </Button>
+            
+            {messages.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowExport(true)}
+                className="text-white/80 hover:text-white hover:bg-white/10 transition-all duration-300"
+                title="Export conversation"
+              >
+                <Download className="w-4 h-4" />
+              </Button>
+            )}
+
             {user ? (
               <>
                 <Button
@@ -361,20 +469,73 @@ export const ChatBot: React.FC = () => {
               </div>
             )}
             
-            {/* Input */}
-            <div className="flex gap-3 items-center">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Share your thoughts... I'm here to help make your day brighter! 💫"
-                className="flex-1 bg-muted/50 border-border/50 focus:border-primary/50 rounded-2xl px-4 py-3 transition-smooth"
-                disabled={isTyping}
-              />
+            {/* Input with Voice Controls */}
+            <div className="flex gap-3 items-end">
+              <div className="flex-1">
+                <Textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Share your thoughts... I'm here to help make your day brighter! 💫"
+                  className="min-h-[44px] max-h-32 resize-none bg-muted/50 border-border/50 focus:border-primary/50 rounded-2xl px-4 py-3 transition-smooth"
+                  disabled={isTyping}
+                  rows={1}
+                />
+              </div>
+              
+              {/* Voice Controls */}
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    if (voiceChat.isListening) {
+                      voiceChat.stopListening();
+                    } else {
+                      voiceChat.startListening();
+                    }
+                  }}
+                  disabled={!voiceChat.isSupported}
+                  className={`h-[44px] w-[44px] transition-all duration-300 ${
+                    voiceChat.isListening 
+                      ? 'bg-red-500/20 border-red-500/50 hover:bg-red-500/30 animate-pulse' 
+                      : 'hover:scale-105'
+                  }`}
+                  title={voiceChat.isListening ? 'Stop listening (Shift+Space)' : 'Start voice input (Shift+Space)'}
+                >
+                  {voiceChat.isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    if (voiceChat.isSpeaking) {
+                      voiceChat.stopSpeaking();
+                    } else {
+                      const lastMessage = messages[messages.length - 1];
+                      if (lastMessage && lastMessage.type === 'bot') {
+                        voiceChat.speak(lastMessage.content);
+                      }
+                    }
+                  }}
+                  disabled={!voiceChat.isSupported}
+                  className={`h-[44px] w-[44px] transition-all duration-300 ${
+                    voiceChat.isSpeaking 
+                      ? 'bg-green-500/20 border-green-500/50 hover:bg-green-500/30 animate-pulse' 
+                      : 'hover:scale-105'
+                  }`}
+                  title={voiceChat.isSpeaking ? 'Stop speaking' : 'Repeat last message'}
+                >
+                  {voiceChat.isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                </Button>
+              </div>
+              
               <Button
                 onClick={() => handleSendMessage()}
                 disabled={!input.trim() || isTyping}
-                className="rounded-2xl px-6 py-3 bg-gradient-primary hover:opacity-90 transition-smooth hover-lift"
+                className="rounded-2xl px-6 py-3 h-[44px] bg-gradient-primary hover:opacity-90 transition-smooth hover-lift"
               >
                 <Send className="w-4 h-4" />
               </Button>
@@ -422,6 +583,24 @@ export const ChatBot: React.FC = () => {
         message={selectedMessage}
         open={showAppeal}
         onOpenChange={setShowAppeal}
+      />
+
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+
+      <MessageExport
+        isOpen={showExport}
+        onClose={() => setShowExport(false)}
+        messages={messages}
+        chatTitle={`Chat with AI - ${new Date().toLocaleDateString()}`}
+      />
+
+      <ShortcutsHelp
+        isOpen={showShortcuts}
+        onClose={() => setShowShortcuts(false)}
+        shortcuts={shortcuts}
       />
     </div>
   );
